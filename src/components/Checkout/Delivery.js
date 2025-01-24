@@ -96,7 +96,7 @@ class Delivery extends React.Component {
                       toggle={this.toggleTooltip}
                     >
                       This option will activate once you add items worth Ksh
-                      {parseFloat(100 - subtotal).toFixed(2)} or more.
+                      {parseFloat(1000 - subtotal).toFixed(2)} or more.
                     </Tooltip>
                   ) : (
                     "You are eligible for FREE delivery!"

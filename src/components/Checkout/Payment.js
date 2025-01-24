@@ -8,6 +8,8 @@ import { Button, Form } from "reactstrap";
 import { Accordion } from "../Utilities/Accordion";
 import { CardElement } from "react-stripe-elements";
 
+// Import MpesaPayment component
+import MpesaPayment from "../Checkout/Mpesa";
 
 const mapStateToProps = state => {
   return {
@@ -31,10 +33,12 @@ class Payment extends React.Component {
     this.toggle = this.toggle.bind(this);
 
     this.state = {
-      collapse: false
+      // Set Mpesa accordion to always be open
+      collapse: false,
+      mpesaOpen: true
     };
   }
-  
+
   componentDidMount() {
     window.scrollTo(0, 0);
   }
@@ -50,8 +54,8 @@ class Payment extends React.Component {
     return (
       <React.Fragment>
         <Form onSubmit={handleSubmit}>
-          <Accordion open={0}>
-            {/* Accordion because the intention was to add more collapsible options here */}
+          <Accordion open={this.state.mpesaOpen ? 1 : 0}>
+            {/* Accordion for Pay by Card */}
             <Accordion.Item>
               <Accordion.Header>Pay by card</Accordion.Header>
               <Accordion.Body>
@@ -67,6 +71,14 @@ class Payment extends React.Component {
                     Order & Pay
                   </Button>
                 </div>
+              </Accordion.Body>
+            </Accordion.Item>
+
+            {/* Accordion for Mpesa Payment */}
+            <Accordion.Item>
+              <Accordion.Header>Pay by Mpesa</Accordion.Header>
+              <Accordion.Body>
+                <MpesaPayment />
               </Accordion.Body>
             </Accordion.Item>
           </Accordion>
@@ -95,7 +107,7 @@ Payment.propTypes = {
 Payment = reduxForm({
   form: "checkout",
   destroyOnUnmount: false,
-  forceUnregisterOnUnmount: true, // unregister fields on unmount
+  forceUnregisterOnUnmount: true,
   keepDirtyOnReinitialize: true,
   updateUnregisteredFields: true,
   enableReinitialize: true
