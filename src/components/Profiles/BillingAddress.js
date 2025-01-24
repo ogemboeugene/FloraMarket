@@ -10,16 +10,6 @@ const mapStateToProps = state => {
 class BillingAddress extends React.Component {
   state = {
     addresses: [
-      // {
-      //     "id": 1,
-      //     "address_name": "address1",
-      //     "address_line_1": "12 Lovely Avenue",
-      //     "address_line_2": "sdfsaf",
-      //     "country": "United Kingdom",
-      //     "city": "London",
-      //     "postcode": "EC1 4YI",
-      //     "owner": 1
-      // }
     ]
   };
 
@@ -32,7 +22,6 @@ class BillingAddress extends React.Component {
 
   render() {
     const { addresses } = this.state;
-    // console.log(addresses);
     return (
       <React.Fragment>
         <h3>My billing details</h3>
