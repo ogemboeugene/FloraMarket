@@ -9,6 +9,7 @@ import { Field, reduxForm } from "redux-form";
 import RenderField from "./RenderField";
 import { FormGroup, Row, Col, Button } from "reactstrap";
 import axios from "axios";
+import { withRouter } from "react-router-dom";
 
 const mapStateToProps = (state) => {
   return state.store;
@@ -23,26 +24,60 @@ const mapDispatchToProps = (dispatch) => {
 };
 
 class MpesaPayment extends React.Component {
+  formatPhoneNumber(phoneNumber) {
+    if (phoneNumber.startsWith("07")) {
+      return "254" + phoneNumber.slice(1);
+    }
+    return phoneNumber;
+  }
+
   handleSubmit = async (formValues) => {
+    if (!formValues.phoneNumber || !formValues.amount) {
+      console.error("Phone number and amount are required.");
+      alert("Please provide a valid phone number and amount.");
+      return;
+    }
+
+    const formattedPhoneNumber = this.formatPhoneNumber(formValues.phoneNumber);
+
     try {
       const response = await axios.post(
         "http://127.0.0.1:8000/api/payments/mpesa-payment/",
         {
-          phoneNumber: formValues.phoneNumber,
+          phoneNumber: formattedPhoneNumber,
           amount: formValues.amount,
-          transactionReference: formValues.transactionReference || null,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
 
       if (response.status === 200) {
-        this.props.setPayment(response.data);
-        this.props.emptyCart();
-        this.props.toggleCheckoutComplete();
+        const paymentStatus = response.data.status;
+        if (paymentStatus === "success") {
+          this.props.setPayment({ status: "success" });
+          this.props.emptyCart();
+          this.props.toggleCheckoutComplete();
+          this.props.history.push("/payment-success");
+        } else if (paymentStatus === "cancelled") {
+          this.props.setPayment({ status: "cancelled" });
+          alert("Payment was cancelled.");
+        } else {
+          this.props.setPayment({ status: "failure" });
+          // alert("Payment failed. Please try again.");
+        }
       } else {
-        console.error("Payment failed:", response);
+        console.error("Payment failed:", response.data);
+        // alert("Payment failed. Please try again.");
+        this.props.setPayment({ status: "failure" });
       }
     } catch (error) {
       console.error("Payment error:", error);
+      alert("An error occurred during payment. Please check your details and try again.");
+      this.props.setPayment({ status: "failure" });
     }
   };
 
@@ -50,7 +85,7 @@ class MpesaPayment extends React.Component {
     const { handleSubmit, submitting } = this.props;
 
     return (
-      <form onSubmit={handleSubmit(this.handleSubmit)}> {/* Wrap the form and use handleSubmit correctly */}
+      <form onSubmit={handleSubmit(this.handleSubmit)}>
         <Row>
           <Col md="12">
             <FormGroup>
@@ -98,9 +133,8 @@ class MpesaPayment extends React.Component {
   }
 }
 
-// Decorate the component with reduxForm
 MpesaPayment = reduxForm({
-  form: "mpesaPayment", // Unique name for the form
+  form: "mpesaPayment",
 })(MpesaPayment);
 
-export default connect(mapStateToProps, mapDispatchToProps)(MpesaPayment);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(MpesaPayment));
