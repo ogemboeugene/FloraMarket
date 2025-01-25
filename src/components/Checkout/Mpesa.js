@@ -3,54 +3,54 @@ import { connect } from "react-redux";
 import {
   setPayment,
   emptyCart,
-  toggleCheckoutComplete
+  toggleCheckoutComplete,
 } from "../../store/actions/storeActions";
-import { Field, reset } from "redux-form";
+import { Field, reduxForm } from "redux-form";
 import RenderField from "./RenderField";
 import { FormGroup, Row, Col, Button } from "reactstrap";
 import axios from "axios";
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
   return state.store;
 };
 
-const mapDispatchToProps = dispatch => {
+const mapDispatchToProps = (dispatch) => {
   return {
-    setPayment: value => dispatch(setPayment(value)),
+    setPayment: (value) => dispatch(setPayment(value)),
     emptyCart: () => dispatch(emptyCart()),
     toggleCheckoutComplete: () => dispatch(toggleCheckoutComplete()),
-    resetCheckoutForm: () => dispatch(reset("checkout"))
   };
 };
 
 class MpesaPayment extends React.Component {
-    handleSubmit = async formValues => {
-      try {
-        const response = await axios.post(
-          "http://localhost:5000/api/mpesa-payment",
-          {
-            phoneNumber: formValues.phoneNumber,
-            amount: formValues.amount,
-            transactionReference: formValues.transactionReference || null
-          }
-        );
-  
-        if (response.status === 200) {
-          this.props.setPayment(response.data);
-          this.props.emptyCart();
-          this.props.toggleCheckoutComplete();
-        } else {
-          console.error("Payment failed:", response);
+  handleSubmit = async (formValues) => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/payments/mpesa-payment/",
+        {
+          phoneNumber: formValues.phoneNumber,
+          amount: formValues.amount,
+          transactionReference: formValues.transactionReference || null,
         }
-      } catch (error) {
-        console.error("Payment error:", error);
+      );
+
+      if (response.status === 200) {
+        this.props.setPayment(response.data);
+        this.props.emptyCart();
+        this.props.toggleCheckoutComplete();
+      } else {
+        console.error("Payment failed:", response);
       }
-    };
-  
-    render() {
-      const { handleSubmit, submitting } = this.props;
-  
-      return (
+    } catch (error) {
+      console.error("Payment error:", error);
+    }
+  };
+
+  render() {
+    const { handleSubmit, submitting } = this.props;
+
+    return (
+      <form onSubmit={handleSubmit(this.handleSubmit)}> {/* Wrap the form and use handleSubmit correctly */}
         <Row>
           <Col md="12">
             <FormGroup>
@@ -82,25 +82,25 @@ class MpesaPayment extends React.Component {
               />
             </FormGroup>
           </Col>
-  
+
           <Col md="12">
-            {/* Use handleSubmit to trigger form submission */}
             <Button
               type="submit"
               disabled={submitting}
               className="btn btn-dark ml-auto"
-              onClick={handleSubmit(this.handleSubmit)} // This is the key change
             >
               Order & Pay
             </Button>
           </Col>
         </Row>
-      );
-    }
+      </form>
+    );
   }
-  
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(MpesaPayment);
+// Decorate the component with reduxForm
+MpesaPayment = reduxForm({
+  form: "mpesaPayment", // Unique name for the form
+})(MpesaPayment);
+
+export default connect(mapStateToProps, mapDispatchToProps)(MpesaPayment);
